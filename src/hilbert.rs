@@ -4,7 +4,7 @@ use std;
 
 //#![allow(unused_variables)]
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
     OutOfRange,
     NotPowerOfTwo,
@@ -46,22 +46,18 @@ fn rotate(n: u32, x: u32, y: u32, rx: bool, ry: bool) -> (u32, u32) {
 
     }
 
-
-
     (x as u32, y as u32)
 }
 
 
 impl SpaceFilling<u32> for Hilbert {
-    fn map(&self, mut t: u32) -> (u32, u32) {
+    fn map(&self, mut t: u32) -> Result<(u32, u32), Error> {
         if t >= self.n * self.n {
-            panic!();
+            Err(Error::OutOfRange)
         } else {
-            println!("{}, {}, {}", t, self.n, self.n * self.n);
 
             let mut x = 0;
             let mut y = 0;
-
 
             let mut i = 1;
             while i < self.n {
@@ -90,13 +86,13 @@ impl SpaceFilling<u32> for Hilbert {
                 i *= 2;
             }
 
-            (x, y)
+            Ok((x, y))
         }
     }
 
-    fn map_inverse(&self, mut x: u32, mut y: u32) -> u32 {
+    fn map_inverse(&self, mut x: u32, mut y: u32) -> Result<u32, Error> {
         if x >= self.n || y >= self.n {
-            panic!();
+            Err(Error::OutOfRange)
         } else {
             let mut t = 0;
             let mut i = self.n / 2;
@@ -121,7 +117,7 @@ impl SpaceFilling<u32> for Hilbert {
                 i /= 2;
             }
 
-            t
+            Ok(t)
         }
 
 
@@ -151,11 +147,11 @@ impl Peano {
 }
 
 impl SpaceFilling<i32> for Peano {
-    fn map(&self, t: i32) -> (i32, i32) {
+    fn map(&self, t: i32) -> Result<(i32, i32), Error> {
         unimplemented!()
     }
 
-    fn map_inverse(&self, x: i32, y: i32) -> i32 {
+    fn map_inverse(&self, x: i32, y: i32) -> Result<i32, Error> {
         unimplemented!()
     }
 
@@ -166,9 +162,9 @@ impl SpaceFilling<i32> for Peano {
 
 pub trait SpaceFilling<Num> {
 
-    fn map(&self, t: Num) -> (Num, Num);
+    fn map(&self, t: Num) -> Result<(Num, Num), Error>;
 
-    fn map_inverse(&self, x: Num, y: Num) -> Num;
+    fn map_inverse(&self, x: Num, y: Num) -> Result<Num, Error>;
 
     fn dimensions(&self) -> (Num, Num);
 }
@@ -201,11 +197,71 @@ mod tests {
     ];
 
     #[test]
+    fn test_new_errors() {
+
+        let new_test_cases = &[
+            (0, Error::NotPositive),
+            (3, Error::NotPowerOfTwo),
+            (5, Error::NotPowerOfTwo),
+        ];
+
+        for (n, e) in new_test_cases {
+            assert_eq!(Hilbert::new(*n).err().unwrap(), *e);
+        }
+    }
+
+    #[test]
+    fn test_map_range_errors() {
+
+        let test_cases = &[
+            (0, None),
+            (255, None),
+            (256, Some(Error::OutOfRange)),
+        ];
+
+        let h = Hilbert::new(16).unwrap();
+
+
+        for (n, e) in test_cases {
+            assert_eq!(h.map(*n).err(), *e);
+        }
+    }
+    #[test]
+    fn test_map_inverse_range_errors() {
+
+        let test_cases = &[
+            (0, 0, None),
+            (15, 15, None),
+            (16, 15, Some(Error::OutOfRange)),
+            (15, 16, Some(Error::OutOfRange)),
+        ];
+
+        let h = Hilbert::new(16).unwrap();
+
+
+        for (x, y, e) in test_cases {
+            assert_eq!(h.map_inverse(*x,*y).err(), *e);
+        }
+    }
+
+    #[test]
+    fn test_small_map() {
+        let h = Hilbert::new(1).unwrap();
+
+        let (x, y) = h.map(0).unwrap();
+
+
+
+    }
+
+
+
+    #[test]
     fn test_map() {
         let h: Hilbert = Hilbert::new(16).unwrap();
 
         for (d, x, y) in TEST_CASES {
-            assert_eq!(h.map(*d), (*x, *y));
+            assert_eq!(h.map(*d).unwrap(), (*x, *y));
         }
     }
     #[test]
@@ -213,7 +269,7 @@ mod tests {
         let h: Hilbert = Hilbert::new(16).unwrap();
 
         for (d, x, y) in TEST_CASES {
-            assert_eq!(h.map_inverse(*x, *y), *d);
+            assert_eq!(h.map_inverse(*x, *y).unwrap(), *d);
         }
     }
 }
