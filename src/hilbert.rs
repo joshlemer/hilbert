@@ -30,7 +30,11 @@ impl Hilbert {
     }
 }
 
-fn rotate(n: u32, mut x: u32, mut y: u32, rx: bool, ry: bool) -> (u32, u32) {
+fn rotate(n: u32, x: u32, y: u32, rx: bool, ry: bool) -> (u32, u32) {
+
+    let mut x = x as i64;
+    let mut y = y as i64;
+    let n = n as i64;
 
     if !ry {
         if rx {
@@ -42,22 +46,26 @@ fn rotate(n: u32, mut x: u32, mut y: u32, rx: bool, ry: bool) -> (u32, u32) {
 
     }
 
-    (x, y)
+
+
+    (x as u32, y as u32)
 }
 
 
 impl SpaceFilling<u32> for Hilbert {
     fn map(&self, mut t: u32) -> (u32, u32) {
-        if t > self.n * self.n {
+        if t >= self.n * self.n {
             panic!();
         } else {
+            println!("{}, {}, {}", t, self.n, self.n * self.n);
 
             let mut x = 0;
             let mut y = 0;
 
-            for i in (1..self.n).map(|i| i * i) {
 
-                let rx = t & 2 == 1;
+            let mut i = 1;
+            while i < self.n {
+                let rx = t & 2 == 2;
                 let mut ry = t & 1 == 1;
 
                 if rx {
@@ -78,6 +86,8 @@ impl SpaceFilling<u32> for Hilbert {
 
                 t /= 4;
 
+
+                i *= 2;
             }
 
             (x, y)
@@ -103,11 +113,12 @@ impl SpaceFilling<u32> for Hilbert {
 
                 t += i * i * (a ^ (if ry { 1 } else { 0 }));
 
+                println!("i, x, y, rx, ry = {},{},{},{},{}", i, x, y, rx, ry);
                 let (_x, _y) = rotate(i, x, y, rx, ry);
                 x = _x;
                 y = _y;
 
-                i = i / 2;
+                i /= 2;
             }
 
             t
@@ -163,45 +174,46 @@ pub trait SpaceFilling<Num> {
 }
 
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    const TEST_CASES: &[(u32, u32, u32)] = &[
+        (0, 0, 0),
+        (16, 4, 0),
+        (32, 4, 4),
+        (48, 3, 7),
+        (64, 0, 8),
+        (80, 0, 12),
+        (96, 4, 12),
+        (112, 7, 11),
+        (128, 8, 8),
+        (144, 8, 12),
+        (160, 12, 12),
+        (170, 15, 15),
+        (176, 15, 11),
+        (192, 15, 7),
+        (208, 11, 7),
+        (224, 11, 3),
+        (240, 12, 0),
+        (255, 15, 0),
+    ];
+
     #[test]
     fn test_map() {
-
-        let test_cases: &[(u32, u32, u32)] = &[
-            (0, 0, 0),
-            (16, 4, 0),
-            (32, 4, 4),
-            (48, 3, 7),
-            (64, 0, 8),
-            (80, 0, 12),
-            (96, 4, 12),
-            (112, 7, 11),
-            (128, 8, 8),
-            (144, 8, 12),
-            (160, 12, 12),
-            (170, 15, 15),
-            (176, 15, 11),
-            (192, 15, 7),
-            (208, 11, 7),
-            (224, 11, 3),
-            (240, 12, 0),
-            (255, 15, 0),
-        ];
-
         let h: Hilbert = Hilbert::new(16).unwrap();
 
-        for (d, x, y) in test_cases.iter() {
-            assert_eq!(*d, h.map_inverse(*x, *y));
+        for (d, x, y) in TEST_CASES {
+            assert_eq!(h.map(*d), (*x, *y));
         }
-
-
-        assert_eq!(2 + 2, 4);
     }
     #[test]
-    fn it_works_2() {
-        assert_eq!(2 + 2, 4);
+    fn test_map_inverse() {
+        let h: Hilbert = Hilbert::new(16).unwrap();
+
+        for (d, x, y) in TEST_CASES {
+            assert_eq!(h.map_inverse(*x, *y), *d);
+        }
     }
 }
