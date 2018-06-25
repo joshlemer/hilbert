@@ -126,6 +126,10 @@ impl SpaceFilling<u32> for Hilbert {
     fn dimensions(&self) -> (u32, u32) {
         (self.n, self.n)
     }
+
+    fn size(&self) -> u32 {
+        self.n * self.n
+    }
 }
 
 pub fn foo((a, b): (i32, i32)) {
@@ -158,6 +162,10 @@ impl SpaceFilling<i32> for Peano {
     fn dimensions(&self) -> (i32, i32) {
         unimplemented!()
     }
+
+    fn size(&self) -> i32 {
+        unimplemented!();
+    }
 }
 
 pub trait SpaceFilling<Num> {
@@ -167,6 +175,8 @@ pub trait SpaceFilling<Num> {
     fn map_inverse(&self, x: Num, y: Num) -> Result<Num, Error>;
 
     fn dimensions(&self) -> (Num, Num);
+
+    fn size(&self) -> Num;
 }
 
 
@@ -208,6 +218,7 @@ mod tests {
         for (n, e) in new_test_cases {
             assert_eq!(Hilbert::new(*n).err().unwrap(), *e);
         }
+
     }
 
     #[test]
@@ -247,11 +258,20 @@ mod tests {
     #[test]
     fn test_small_map() {
         let h = Hilbert::new(1).unwrap();
+        assert_eq!(h.map(0), Ok((0, 0)));
+        assert_eq!(h.map_inverse(0, 0), Ok(0));
+    }
 
-        let (x, y) = h.map(0).unwrap();
+    #[test]
+    fn test_all_map_values() {
+        let h = Hilbert::new(16).unwrap();
 
-
-
+        for d in 0..h.size() {
+            let (x, y) = h.map(d).unwrap();
+            assert!(x < h.dimensions().0);
+            assert!(y < h.dimensions().0);
+            assert_eq!(d, h.map_inverse(x, y).unwrap());
+        }
     }
 
 
