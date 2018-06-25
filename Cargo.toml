@@ -1,0 +1,8 @@
+[package]
+name = "hilbert"
+version = "0.1.0"
+authors = ["Josh Lemer <joshlemer@gmail.com>"]
+
+[dependencies]
+
+num = "0.1.42"
