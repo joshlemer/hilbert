@@ -11,8 +11,6 @@ pub struct Hilbert {
 
 
 impl Hilbert {
-
-
     pub fn new(n: u32) -> Result<Hilbert, Error> {
         if n <= 0 {
             Err(Error::NotPositive)
@@ -103,7 +101,6 @@ impl SpaceFilling<u32> for Hilbert {
 
                 t += i * i * (a ^ (if ry { 1 } else { 0 }));
 
-                println!("i, x, y, rx, ry = {},{},{},{},{}", i, x, y, rx, ry);
                 let (_x, _y) = rotate(i, x, y, rx, ry);
                 x = _x;
                 y = _y;
