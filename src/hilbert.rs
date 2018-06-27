@@ -2,14 +2,8 @@
 
 use std;
 
-//#![allow(unused_variables)]
+use super::{SpaceFilling, Error};
 
-#[derive(Debug, PartialEq)]
-pub enum Error {
-    OutOfRange,
-    NotPowerOfTwo,
-    NotPositive
-}
 
 pub struct Hilbert {
     n: u32,
@@ -136,48 +130,7 @@ pub fn foo((a, b): (i32, i32)) {
     println!();
 }
 
-pub struct Peano {
-    n: usize
-}
 
-impl Peano {
-    pub fn new(n: usize) -> Self {
-        if n == 0 {
-            panic!();
-        } else {
-            Peano { n: n }
-        }
-    }
-}
-
-impl SpaceFilling<i32> for Peano {
-    fn map(&self, t: i32) -> Result<(i32, i32), Error> {
-        unimplemented!()
-    }
-
-    fn map_inverse(&self, x: i32, y: i32) -> Result<i32, Error> {
-        unimplemented!()
-    }
-
-    fn dimensions(&self) -> (i32, i32) {
-        unimplemented!()
-    }
-
-    fn size(&self) -> i32 {
-        unimplemented!();
-    }
-}
-
-pub trait SpaceFilling<Num> {
-
-    fn map(&self, t: Num) -> Result<(Num, Num), Error>;
-
-    fn map_inverse(&self, x: Num, y: Num) -> Result<Num, Error>;
-
-    fn dimensions(&self) -> (Num, Num);
-
-    fn size(&self) -> Num;
-}
 
 
 
@@ -274,8 +227,6 @@ mod tests {
         }
     }
 
-
-
     #[test]
     fn test_map() {
         let h: Hilbert = Hilbert::new(16).unwrap();
@@ -284,6 +235,7 @@ mod tests {
             assert_eq!(h.map(*d).unwrap(), (*x, *y));
         }
     }
+
     #[test]
     fn test_map_inverse() {
         let h: Hilbert = Hilbert::new(16).unwrap();
